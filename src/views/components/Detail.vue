@@ -2,7 +2,7 @@
     <el-form ref="formRef" :model="formData" :rules="rules" style="padding-right: 30px">
         <div class="top-title">
             <h1>{{ info.title }}</h1>
-            <div class="msg" v-if="isStart">
+            <div class="msg" v-if="isStart && !tipsMode">
                 状态：{{ jlmsg }}
             </div>
         </div>
@@ -10,6 +10,9 @@
             <div>
                 <el-button :icon="Back" circle @click="back" />
                 <el-button :icon="RefreshLeft" circle @click="reset" />
+                <el-tooltip content="切换提示模式" placement="top">
+                    <el-button :icon="Switch" circle @click="tipsMode = !tipsMode" />
+                </el-tooltip>
             </div>
             <div>
                 <el-form-item required label="类型" prop="type">
@@ -76,8 +79,9 @@ import { ref, watch } from "vue";
 import crypto from "../../utils/crypto";
 import axios from "axios";
 import { ElMessage, ElNotification } from "element-plus";
-import { Back, RefreshLeft } from "@element-plus/icons-vue";
+import { Back, RefreshLeft, Switch } from "@element-plus/icons-vue";
 const cpInfo = ref([]);
+const tipsMode = ref(false);
 const info = ref({});
 const dialogVisible = ref(false);
 const getItem = ref({});
@@ -137,7 +141,7 @@ const getDetail = async () => {
     let tempQuery = {
         ...query.value,
         collection_id: id.value,
-        sign_time: parseInt(new Date().getTime() / 1000)
+        sign_time: parseInt(new Date().getTime() / 1000) + 50
     };
     try {
         loading.value = true;
@@ -212,7 +216,7 @@ const batch = async () => {
         max_num: 9,
         max_price: formData.value.price,
         is_free: 0,
-        sign_time: parseInt(new Date().getTime() / 1000)
+        sign_time: parseInt(new Date().getTime() / 1000) + 50
     }
     let res = await axios.post(
         "/api/userOrder/batchOrderCreate",
@@ -225,13 +229,16 @@ const batch = async () => {
         dialogVisible.value = true;
         send();
     } else {
-        jlmsg.value = data.message;
-        // ElNotification({
-        //     title: '提示',
-        //     message: data.message,
-        //     duration: 1500,
-        //     type: 'warning',
-        // })
+        if (tipsMode.value) {
+            ElNotification({
+                title: '提示',
+                message: data.message,
+                duration: 1500,
+                type: 'warning',
+            })
+        } else{
+            jlmsg.value = data.message;
+        }
     }
 }
 
@@ -240,7 +247,7 @@ const self = async () => {
     const tempQuery = {
         collection_id: info.value.id,
         returnurl: "https://h5.iswenchuang.cn/#/pages/market/detail",
-        sign_time: parseInt(new Date().getTime() / 1000)
+        sign_time: parseInt(new Date().getTime() / 1000) + 50
     }
     let res = await axios.post(
         "/api/userOrder/fastMarketOrderCreate",
@@ -254,13 +261,16 @@ const self = async () => {
         getItem.value = data.data;
         send();
     } else {
-        jlmsg.value = data.message;
-        // ElNotification({
-        //     title: '提示',
-        //     message: data.message,
-        //     duration: 1500,
-        //     type: 'warning',
-        // })
+        if (tipsMode.value) {
+            ElNotification({
+                title: '提示',
+                message: data.message,
+                duration: 1500,
+                type: 'warning',
+            })
+        } else{
+            jlmsg.value = data.message;
+        }
     }
 }
 

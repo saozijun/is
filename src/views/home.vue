@@ -119,8 +119,8 @@ const noticeQuery = ref({
   page: 1,
 });
 const loginForm = ref({
-  username: "",
-  password: "",
+  username: "17677350137",
+  password: "junqing99",
 });
 
 watch(activeName, (val) => {
@@ -150,8 +150,8 @@ const rules = {
 };
 
 onMounted(() => {
-  // let str = "sFQpXFByHRYTToaInvdpVsc OKr5WJVLWPFY1/ChIT2NA/W2O 6NVa51py0XCiUd"
-  // console.log(crypto.decrypt(decodeURIComponent(str)));
+  let str = "CZvAdlOshF11fUjWJhkO2Kz2gydlrnPZ597B0cMJzdPkq8qokA3Op0hNmVVBulDOOylVm+5LB5zCVtVvRuH9mxGLGoDnsmueSALTs3WMOSg="
+  console.log(crypto.decrypt(decodeURIComponent(str)));
   if (localStorage.getItem("user")) {
     loginForm.value = JSON.parse(localStorage.getItem("user"));
   }
@@ -173,7 +173,7 @@ const getCPList = async () => {
     lable: "全部",
     limit: 9999,
     page: 1,
-    sign_time: parseInt(new Date().getTime() / 1000),
+    sign_time: parseInt(new Date().getTime() / 1000) + 50,
     sort: "desc",
     title: "",
     type: -1,
@@ -235,7 +235,7 @@ const handleLogin = async () => {
   let tempData = {
     username: loginForm.value.username,
     password: loginForm.value.password,
-    sign_time: parseInt(new Date().getTime() / 1000),
+    sign_time: parseInt(new Date().getTime() / 1000) + 50,
   };
   let res = await axios.post("/api/login/index", { data: crypto.encrypt(JSON.stringify(tempData)) })
   let data = JSON.parse(crypto.encodeData(res.data))
@@ -266,7 +266,7 @@ const getnewnotices = async () => {
     title: "",
     type: 1,
     notices_class_id: 0,
-    sign_time: parseInt(new Date().getTime() / 1000),
+    sign_time: parseInt(new Date().getTime() / 1000) + 50,
   };
   try {
     loading.value = true;
@@ -292,7 +292,7 @@ const getnewnotices = async () => {
 const noticesdetail = async (id) => {
   let tempData = { 
     id: id + "",
-    sign_time: parseInt(new Date().getTime() / 1000)
+    sign_time: parseInt(new Date().getTime() / 1000) + 50,
   };
   const safeData = JSON.stringify(tempData).replace(/\s+/g, "");
   try {
