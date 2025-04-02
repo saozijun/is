@@ -119,8 +119,8 @@ const noticeQuery = ref({
   page: 1,
 });
 const loginForm = ref({
-  username: "17677350137",
-  password: "junqing99",
+  username: "",
+  password: "",
 });
 
 watch(activeName, (val) => {
@@ -150,7 +150,7 @@ const rules = {
 };
 
 onMounted(() => {
-  let str = "CZvAdlOshF11fUjWJhkO2Kz2gydlrnPZ597B0cMJzdPkq8qokA3Op0hNmVVBulDOOylVm+5LB5zCVtVvRuH9mxGLGoDnsmueSALTs3WMOSg="
+  let str = "PmSizUo38/Yjdw2KhHqc0vSwFNwdol4nFkRBpgTVZLcrtadvHrBK0TWQSgitv8WVXDmIOntJCjqkYh+tyjURTbBjQpd9KtlM1ipcFkrWPYJuFV0uhrUyZj8+60wTuQ6U"
   console.log(crypto.decrypt(decodeURIComponent(str)));
   if (localStorage.getItem("user")) {
     loginForm.value = JSON.parse(localStorage.getItem("user"));
