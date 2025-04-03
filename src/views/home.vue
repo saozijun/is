@@ -3,21 +3,29 @@
     <div class="r-box">
       <el-tabs v-if="token" v-model="activeName" class="demo-tabs" @tab-click="handleClick">
         <div class="b-title" v-if="!showDetail && (!noticesInfo || activeName == '捡漏')">
-          <p>艾斯起飞</p>
+          <div class="lable-list" v-if="activeName == '捡漏'">
+            <div class="lable-item" :class="{'l-active': v.lable === activeLabel}" v-for="(v, i) in labelList" :key="i" @click="activeLabel = v.lable">
+              {{ v.lable }}
+            </div>
+          </div>
+          <p v-else>艾斯起飞</p>
           <el-button :icon="RefreshLeft" circle @click="reset" />
         </div>
         <el-tab-pane label="捡漏" name="捡漏">
           <Detail ref="detailRef" @backOk="detailBack" v-if="showDetail"></Detail>
           <div class="cp-list" v-loading="loading" v-else>
-            <div v-for="(item, index) in cpList" :key="index" class="cp-item" @click="toDetail(item)">
-              <div class="cp-img">
-                <img :src="item.image" alt="" />
+            <template v-if="cpList.length">
+              <div v-for="(item, index) in cpList" :key="index" class="cp-item" @click="toDetail(item)">
+                <div class="cp-img">
+                  <img :src="item.image" alt="" />
+                </div>
+                <div class="cp-title">
+                  <p class="cp-title-desc">{{ item.title }}</p>
+                  <p>{{ item.pay_price ? item.pay_price : '退市' }}</p>
+                </div>
               </div>
-              <div class="cp-title">
-                <p class="cp-title-desc">{{ item.title }}</p>
-                <p>{{ item.pay_price ? item.pay_price : '退市' }}</p>
-              </div>
-            </div>
+            </template>
+            <el-empty style="width: 100%;" v-else description="暂无数据" :image-size="100" />
           </div>
         </el-tab-pane>
         <el-tab-pane label="公告" name="公告">
@@ -99,6 +107,8 @@ import { ElMessage } from 'element-plus'
 import Detail from "./components/Detail.vue";
 
 const cpList = ref([]);
+const labelList = ref([]);
+const activeLabel = ref("全部");
 const UID = ref(null);
 const rememberUid = ref(true);
 const noticesInfo = ref(null);
@@ -130,6 +140,10 @@ watch(activeName, (val) => {
     getnewnotices()
   }
 });
+watch(activeLabel, (val) => {
+  getCPList();
+});
+
 const reset = () => {
   if (activeName.value == "捡漏") {
     document.querySelector(".cp-list").scrollTop = 0;
@@ -150,8 +164,9 @@ const rules = {
 };
 
 onMounted(() => {
-  let str = "PmSizUo38/Yjdw2KhHqc0vSwFNwdol4nFkRBpgTVZLcrtadvHrBK0TWQSgitv8WVXDmIOntJCjqkYh+tyjURTbBjQpd9KtlM1ipcFkrWPYJuFV0uhrUyZj8+60wTuQ6U"
+  let str = `uWp%2BbnD4TeOoKDgYaSofDtFoAL%2FW%2BT2Lx3iRzP7QFZxPZTMb8lPNheqRF%2FcWaFFnezAn%2B8EQnVymXVgPmUpEnnULnhLVV0a5QdzDhP43R%2BwhmntKIu3L5kYlgD5AHLG6eLjZ68r5cXCF6ErDf6WpUKYRcdIgPiVJ0VNJhgaaNsbp%2F%2BuXrmNV1lsD%2B3nPgRB3`
   console.log(crypto.decrypt(decodeURIComponent(str)));
+
   if (localStorage.getItem("user")) {
     loginForm.value = JSON.parse(localStorage.getItem("user"));
   }
@@ -163,6 +178,7 @@ onMounted(() => {
     isLogin.value = true;
     loginForm.value.username = localStorage.getItem("username");
     getCPList();
+    getLabelList()
   }
 });
 
@@ -170,7 +186,7 @@ const getCPList = async () => {
   let query = {
     field: "upo.created_at",
     is_free: "0",
-    lable: "全部",
+    lable: activeLabel.value,
     limit: 9999,
     page: 1,
     sign_time: parseInt(new Date().getTime() / 1000) + 50,
@@ -200,6 +216,24 @@ const getCPList = async () => {
       ElMessage.error(err.errmsg)
     }
   }
+};
+
+const getLabelList = async () => {
+  let query = {
+    is_free: "0",
+    sign_time: parseInt(new Date().getTime() / 1000) + 50
+  }
+  try {
+    let res = await axios.get("/api/market/lablelist?data=" + encodeURIComponent(crypto.encrypt(JSON.stringify(query))), {
+      headers: { Authorization: "Bearer " + token.value }
+    })
+    let data = JSON.parse(crypto.decodeUnicode(crypto.decrypt(res.data)))
+    if (data.code == 1000) {
+      labelList.value = data.data
+    } else {
+      ElMessage.error(data.message)
+    }
+  } catch (error) { }
 };
 
 const toDetail = (item) => {
@@ -484,7 +518,29 @@ const saveUID = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
+  .lable-list{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    .lable-item{
+      border: 1px solid #eee;
+      border-radius: 150px;
+      padding: 3px 15px;
+      font-size: 12px;
+      transition: .2s all;
+      cursor: pointer;
+      &:hover{
+        background: #ddebff;
+        color: #2c7deead;
+        border-color: #2c7deead;
+      }
+    }
+    .l-active{
+        background: #ddebff;
+        color: #2c7deead;
+        border-color: #2c7deead;
+    }
+  }
   p {
     font-weight: bold;
   }
