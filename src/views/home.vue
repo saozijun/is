@@ -17,11 +17,12 @@
             <template v-if="cpList.length">
               <div v-for="(item, index) in cpList" :key="index" class="cp-item" @click="toDetail(item)">
                 <div class="cp-img">
+                  <div class="count">流通_{{ item.lt_num }}份</div>
                   <img :src="item.image" alt="" />
                 </div>
                 <div class="cp-title">
                   <p class="cp-title-desc">{{ item.title }}</p>
-                  <p>{{ item.pay_price ? item.pay_price : '退市' }}</p>
+                  <p class="cp-title-price">{{ item.pay_price ? item.pay_price : '退市' }}</p>
                 </div>
               </div>
             </template>
@@ -164,8 +165,8 @@ const rules = {
 };
 
 onMounted(() => {
-  let str = `uWp%2BbnD4TeOoKDgYaSofDtFoAL%2FW%2BT2Lx3iRzP7QFZxPZTMb8lPNheqRF%2FcWaFFnezAn%2B8EQnVymXVgPmUpEnnULnhLVV0a5QdzDhP43R%2BwhmntKIu3L5kYlgD5AHLG6eLjZ68r5cXCF6ErDf6WpUKYRcdIgPiVJ0VNJhgaaNsbp%2F%2BuXrmNV1lsD%2B3nPgRB3`
-  console.log(crypto.decrypt(decodeURIComponent(str)));
+  // let str = `uWp%2BbnD4TeOoKDgYaSofDtFoAL%2FW%2BT2Lx3iRzP7QFZxPZTMb8lPNheqRF%2FcWaFFnezAn%2B8EQnVymXVgPmUpEnnULnhLVV0a5QdzDhP43R%2BwhmntKIu3L5kYlgD5AHLG6eLjZ68r5cXCF6ErDf6WpUKYRcdIgPiVJ0VNJhgaaNsbp%2F%2BuXrmNV1lsD%2B3nPgRB3`
+  // console.log(crypto.decrypt(decodeURIComponent(str)));
 
   if (localStorage.getItem("user")) {
     loginForm.value = JSON.parse(localStorage.getItem("user"));
@@ -175,10 +176,10 @@ onMounted(() => {
   }
   token.value = localStorage.getItem("token");
   if (token.value) {
+    getLabelList()
     isLogin.value = true;
     loginForm.value.username = localStorage.getItem("username");
     getCPList();
-    getLabelList()
   }
 });
 
@@ -284,6 +285,7 @@ const handleLogin = async () => {
     token.value = data.data.token;
     isLogin.value = true;
     getCPList();
+    getLabelList()
     ElMessage.success(data.message)
   } else {
     ElMessage.error(data.message)
@@ -396,7 +398,18 @@ const saveUID = () => {
           width: 100%;
           height: 120px;
           overflow: hidden;
-
+          position: relative;
+          .count{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: fit-content;
+            padding: 2px 10px;
+            font-size: 10px;
+            background-color: #252525;
+            border-bottom-right-radius: 6px;
+            color: #fff;
+          }
           img {
             width: 100%;
             height: 100%;
@@ -421,6 +434,9 @@ const saveUID = () => {
             font-weight: bold;
             overflow: hidden;
             text-overflow: ellipsis;
+          }
+          .cp-title-price {
+            min-width: fit-content;
           }
         }
       }
