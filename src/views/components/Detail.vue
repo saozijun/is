@@ -39,20 +39,48 @@
             </div>
         </div>
     </el-form>
-    <div class="list" v-loading="loading" v-if="cpInfo.length" v-infinite-scroll="load">
-        <div class="item" v-for="(item, index) in cpInfo" :key="index">
-            <div class="item-top">
-                <div class="title">
-                    <p>{{ info.title }}</p>
-                    <el-tag :type="item.lock_uid ? 'danger' : 'warning'">{{ item.lock_uid ? '锁定中' : '寄售中' }}</el-tag>
-                </div>
-                <p class="tips">#{{ item.pack_num }}/{{ info.all_num }}</p>
-            </div>
-            <p class="price"><span>￥</span>{{ item.pay_price }}</p>
+    <div class="lable-list">
+        <div class="lable-item" :class="{'l-active': v === activecjLabel}" v-for="(v, i) in labelcjList" :key="i" @click="activecjLabel = v">
+        {{ v }}
         </div>
-        <div class="load" v-if="isShowAll">已加载全部 ~</div>
     </div>
-    <el-empty v-else description="暂无挂单" :image-size="100" />
+    <div v-if="activecjLabel == '藏品'">
+        <div class="list" v-loading="loading" v-if="cpInfo.length" v-infinite-scroll="load">
+            <div class="item" v-for="(item, index) in cpInfo" :key="index">
+                <div class="item-top">
+                    <div class="title">
+                        <p>{{ info.title }}</p>
+                        <el-tag :type="item.lock_uid ? 'danger' : 'warning'">{{ item.lock_uid ? '锁定中' : '寄售中' }}</el-tag>
+                    </div>
+                    <p class="tips">#{{ item.pack_num }}/{{ info.all_num }}</p>
+                </div>
+                <p class="price"><span>￥</span>{{ item.pay_price }}</p>
+            </div>
+            <div class="load" v-if="isShowAll">已加载全部 ~</div>
+        </div>
+        <el-empty v-else description="暂无挂单" :image-size="100" />
+    </div>
+    <div v-else class="cj-box">
+        <div class="cj-top">
+            <div>当前地板价 ￥{{ cjInfo.floor }}</div>
+            <div>今日最高 ￥{{ cjInfo.max }}</div>
+            <div>今日最低 ￥{{ cjInfo.min || '-' }}</div>
+            <div>今日成交量 {{ cjInfo.day }}</div>
+            <div>小时成交量 {{ cjInfo.hour }}</div>
+        </div>
+        <div class="cj-list">
+            <div class="cj-item" v-for="(item, index) in cjInfo.list" :key="index">
+                <div>
+                    <p>{{ info.title }}#{{ item.pack_num }}</p>
+                    <span>￥{{ item.pay_price }}</span>
+                </div>
+                <div>
+                    <p>{{ item.hash }}</p>
+                    <span>{{ item.time }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
     <el-dialog
         v-model="dialogVisible"
         title="捡到咯"
@@ -80,6 +108,9 @@ import crypto from "../../utils/crypto";
 import axios from "axios";
 import { ElMessage, ElNotification } from "element-plus";
 import { Back, RefreshLeft, Switch } from "@element-plus/icons-vue";
+const labelcjList = ref([ "藏品", "成交数据" ])
+const activecjLabel = ref("藏品");
+const cjInfo = ref({});
 const cpInfo = ref([]);
 const tipsMode = ref(false);
 const info = ref({});
@@ -135,6 +166,37 @@ const back = async () => {
     id.value = null;
     emit("backOk");
 };
+
+watch(activecjLabel, (val) => {
+  if (val == "成交数据") {
+    getCJList();
+  } else {
+    query.value.page = 1;
+    getDetail();
+  }
+});
+
+const getCJList = async ()=>{
+  let query = {
+    collection_id: id.value,
+    sign_time: parseInt(new Date().getTime() / 1000) + 50,
+  }
+  try {
+    loading.value = true;
+    let res = await axios.get("/api/market/stats?data=" + encodeURIComponent(crypto.encrypt(JSON.stringify(query))), {
+      headers: { Authorization: "Bearer " + token.value }
+    })
+    let data = JSON.parse(crypto.decodeUnicode(crypto.decrypt(res.data)))
+    if (data.code == 1000) {
+        cjInfo.value = data.data
+    } else {
+      ElMessage.error(data.message)
+    }
+    loading.value = false;
+  } catch (error) {
+    loading.value = false;
+  }
+}
 
 const getDetail = async () => {
     if (!id.value) return;
@@ -200,6 +262,10 @@ const start = async () => {
 };
 
 const reset = () => {
+    if (activecjLabel.value == "成交数据") {
+        getCJList();
+        return
+    }
     query.value.page = 1;
     document.querySelector(".list").scrollTop = 0;
     getDetail();
@@ -374,4 +440,88 @@ defineExpose({
         }
     }
 }
+
+.lable-list{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    .lable-item{
+        border: 1px solid #eee;
+        border-radius: 150px;
+        padding: 3px 15px;
+        font-size: 12px;
+        transition: .2s all;
+        cursor: pointer;
+        &:hover{
+            background: #ddebff;
+            color: #2c7deead;
+            border-color: #2c7deead;
+        }
+    }
+    .l-active{
+        background: #ddebff;
+        color: #2c7deead;
+        border-color: #2c7deead;
+    }
+}
+.cj-top{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px 0;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    div{
+        background-color: #409eff;
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        margin-right: 5px;
+        &:nth-child(1){
+            background-color: #626aef;
+        }
+        &:nth-child(2){
+            background-color: #d72222;
+        }
+        &:nth-child(3){
+            background-color: #2da438;
+        }
+ 
+    }
+}
+
+.cj-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    .cj-item{
+        >div{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            &:nth-child(1){
+                p{
+                    font-weight: bold;
+                }
+                span{
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+            }
+            &:nth-child(2){
+                p{
+                    font-size: 12px;
+                }
+                span{
+                    font-size: 12px;
+                    color: #666;
+                }
+            }
+        }
+    }
+}
+
 </style>

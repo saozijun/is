@@ -165,7 +165,7 @@ const rules = {
 };
 
 onMounted(() => {
-  // let str = `uWp%2BbnD4TeOoKDgYaSofDtFoAL%2FW%2BT2Lx3iRzP7QFZxPZTMb8lPNheqRF%2FcWaFFnezAn%2B8EQnVymXVgPmUpEnnULnhLVV0a5QdzDhP43R%2BwhmntKIu3L5kYlgD5AHLG6eLjZ68r5cXCF6ErDf6WpUKYRcdIgPiVJ0VNJhgaaNsbp%2F%2BuXrmNV1lsD%2B3nPgRB3`
+  // let str = `3tdZ4FikHLbBxgiyttcFeH6I4PFFmDkQo25ovU%2FzL2JmacOWRcxVo%2F3tp5ej%2FG3G`
   // console.log(crypto.decrypt(decodeURIComponent(str)));
 
   if (localStorage.getItem("user")) {
